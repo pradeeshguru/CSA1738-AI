@@ -1,0 +1,61 @@
+import math
+
+def alpha_beta(board, depth, alpha, beta, is_maximizing):
+    if check_winner(board, 'X'):
+        return 10 - depth
+    if check_winner(board, 'O'):
+        return depth - 10
+    if not any(cell == ' ' for row in board for cell in row):
+        return 0
+
+    if is_maximizing:
+        best_score = -math.inf
+        for (i, j) in get_empty_cells(board):
+            board[i][j] = 'X'
+            score = alpha_beta(board, depth + 1, alpha, beta, False)
+            board[i][j] = ' '
+            best_score = max(score, best_score)
+            alpha = max(alpha, best_score)
+            if beta <= alpha:
+                break
+        return best_score
+    else:
+        best_score = math.inf
+        for (i, j) in get_empty_cells(board):
+            board[i][j] = 'O'
+            score = alpha_beta(board, depth + 1, alpha, beta, True)
+            board[i][j] = ' '
+            best_score = min(score, best_score)
+            beta = min(beta, best_score)
+            if beta <= alpha:
+                break
+        return best_score
+
+def get_empty_cells(board):
+    return [(i, j) for i in range(3) for j in range(3) if board[i][j] == ' ']
+
+def check_winner(board, player):
+    win_conditions = [board[i] for i in range(3)] + \
+                      [[board[i][j] for i in range(3)] for j in range(3)] + \
+                      [[board[i][i] for i in range(3)]] + \
+                      [[board[i][2-i] for i in range(3)]]
+    return [player]*3 in win_conditions
+
+def best_move(board):
+    best_score = -math.inf
+    move = None
+    alpha = -math.inf
+    beta = math.inf
+    for (i, j) in get_empty_cells(board):
+        board[i][j] = 'X'
+        score = alpha_beta(board, 0, alpha, beta, False)
+        board[i][j] = ' '
+        if score > best_score:
+            best_score = score
+            move = (i, j)
+    return move
+
+# Example usage
+board = [[' ']*3 for _ in range(3)]
+move = best_move(board)
+print("Best move:", move)

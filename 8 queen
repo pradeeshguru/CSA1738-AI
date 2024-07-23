@@ -1,0 +1,60 @@
+import heapq
+
+def heuristic(board, goal):
+    distance = 0
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] != 0:
+                x, y = divmod(goal.index(board[i][j]), 3)
+                distance += abs(x - i) + abs(y - j)
+    return distance
+
+def get_neighbors(board):
+    x, y = [(ix, iy) for ix, row in enumerate(board) for iy, i in enumerate(row) if i == 0][0]
+    directions = [("up", x - 1, y), ("down", x + 1, y), ("left", x, y - 1), ("right", x, y + 1)]
+    neighbors = []
+
+    for move, nx, ny in directions:
+        if 0 <= nx < 3 and 0 <= ny < 3:
+            new_board = [row[:] for row in board]
+            new_board[x][y], new_board[nx][ny] = new_board[nx][ny], new_board[x][y]
+            neighbors.append((new_board, move))
+    return neighbors
+
+def solve_puzzle(start, goal):
+    goal_flat = [item for sublist in goal for item in sublist]
+    start_state = (heuristic(start, goal_flat), 0, start, "")
+    open_list = []
+    heapq.heappush(open_list, start_state)
+    closed_set = set()
+
+    while open_list:
+        _, depth, current_board, path = heapq.heappop(open_list)
+        if current_board == goal:
+            return path.split()
+        closed_set.add(tuple(map(tuple, current_board)))
+
+        for neighbor, move in get_neighbors(current_board):
+            if tuple(map(tuple, neighbor)) not in closed_set:
+                heapq.heappush(open_list, (heuristic(neighbor, goal_flat) + depth + 1, depth + 1, neighbor, path + " " + move))
+    return None
+
+start = [
+    [1, 2, 3],
+    [4, 0, 5],
+    [7, 8, 6]
+]
+
+goal = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+]
+
+solution = solve_puzzle(start, goal)
+if solution:
+    print("Solution found!")
+    for step in solution:
+        print(step)
+else:
+    print("No solution exists.")
